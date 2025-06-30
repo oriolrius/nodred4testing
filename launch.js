@@ -32,38 +32,48 @@ if (!fs.existsSync(flowFile)) {
     fs.writeFileSync(flowFile, JSON.stringify(emptyFlow, null, 2));
 }
 
-// Node-RED settings
+// Node-RED settings - based on settings.js.basic
 const settings = {
+    // Flow file configuration
+    flowFile: 'flows.json',
+    flowFilePretty: true,
+    
+    // User directory
+    userDir: tempDir,
+    
+    // Server configuration
+    uiPort: process.env.PORT || 1880,
     httpAdminRoot: '/',
     httpNodeRoot: '/api',
-    userDir: tempDir,
-    flowFile: 'flows.json',
     
-    // CORS settings
+    // CORS settings for HTTP admin interface
     httpAdminCors: {
         origin: "*",
         credentials: true
     },
     
-    // Authentication disabled for simplicity
-    adminAuth: false,
-    httpAdminAuth: false,
-    httpNodeAuth: false,
+    // CORS settings for HTTP nodes
+    httpNodeCors: {
+        origin: "*",
+        methods: "GET,PUT,POST,DELETE"
+    },
     
-    // Additional settings to prevent login dialogs
-    requireAuth: false,
-    credentialSecret: false, // Disable credential encryption
+    // Authentication disabled (commented out like in settings.js.basic)
+    // adminAuth: false,
+    // httpAdminAuth: false,
+    // httpNodeAuth: false,
     
-    // Disable authentication checks
-    httpStatic: false,
-    httpStaticAuth: false,
+    // Runtime state - IMPORTANT: This controls flow deployment
+    runtimeState: {
+        enabled: false,  // This should be false for normal operation
+        ui: false        // This should be false for normal operation
+    },
     
-    // Disable session management that might trigger login
-    sessionSecret: false,
-    sessionTimeout: false,
-    
-    // Explicitly disable all authentication mechanisms
-    disableAuth: true,
+    // Diagnostics
+    diagnostics: {
+        enabled: true,
+        ui: true
+    },
     
     // Logging configuration
     logging: {
@@ -74,51 +84,68 @@ const settings = {
         }
     },
     
-    // Editor theme
+    // Editor theme configuration
     editorTheme: {
+        tours: false,
         projects: {
+            enabled: false,
+            workflow: {
+                mode: "manual"
+            }
+        },
+        palette: {
+            editable: true
+        },
+        codeEditor: {
+            lib: "monaco"
+        },
+        markdownEditor: {
+            mermaid: {
+                enabled: true
+            }
+        },
+        multiplayer: {
             enabled: false
         },
         header: {
             title: "Node-RED Launcher",
             url: "about:blank"
-        },
-        login: {
-            image: false // Disable login page image
-        },
-        userMenu: false, // Disable user menu completely
-        menu: {
-            "menu-item-user-settings": false, // Hide user settings
-            "menu-item-keyboard-shortcuts": false, // Hide keyboard shortcuts that might show login
-            "menu-item-help": false, // Hide help menu
-            "menu-item-node-red-version": false // Hide version info
-        },
-        tours: false, // Disable tours that might trigger dialogs
-        palette: {
-            editable: true
         }
     },
     
-    // Function settings
+    // Function node configuration
+    functionExternalModules: true,
+    functionTimeout: 0,
     functionGlobalContext: {
         // Add any global context variables here
-    }
+    },
+    
+    // Export global context keys
+    exportGlobalContextKeys: false,
+    
+    // External modules configuration
+    externalModules: {
+        // palette: {
+        //     allowInstall: true,
+        //     allowUpdate: true,
+        //     allowUpload: true
+        // }
+    },
+    
+    // Debug configuration
+    debugMaxLength: 1000,
+    
+    // Connection timeouts
+    mqttReconnectTime: 15000,
+    serialReconnectTime: 15000
 };
 
 console.log(`📁 Using Node-RED directory: ${tempDir}`);
+console.log('⚙️  Configuration: No authentication, flows deployable');
 console.log('');
 
 // Initialize Node-RED
 RED.init(server, settings);
-
-// Add middleware to bypass authentication completely
-app.use((req, res, next) => {
-    // Skip authentication for all admin routes
-    if (req.path.startsWith('/auth/') || req.path.includes('login')) {
-        return res.status(404).send('Authentication disabled');
-    }
-    next();
-});
 
 // Serve the editor UI from /
 app.use(settings.httpAdminRoot, RED.httpAdmin);
