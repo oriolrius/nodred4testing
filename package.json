@@ -1,0 +1,17 @@
+{
+  "name": "node-red-launcher",
+  "version": "1.0.0",
+  "description": "Node-RED launcher using the Node-RED library",
+  "main": "launch.js",
+  "scripts": {
+    "start": "node launch.js",
+    "start:quiet": "node --no-deprecation launch.js"
+  },
+  "dependencies": {
+    "node-red": "^4.0.2",
+    "express": "^4.19.0"
+  },
+  "keywords": ["node-red", "launcher"],
+  "author": "",
+  "license": "MIT"
+}
